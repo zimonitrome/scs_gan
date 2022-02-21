@@ -17,12 +17,16 @@ Parameters in G: 3,574,656
 
 Parameters in D: 2,763,520
 
+https://user-images.githubusercontent.com/17656709/155038245-4837e3c2-34f6-486e-92f7-e3f791f8c48e.mp4
+
 
 ### DC G + SCS D
 
 Parameters in G: 3,574,656
 
 Parameters in D:   196,143
+
+https://user-images.githubusercontent.com/17656709/155038258-e44f55ed-43e4-4519-899c-6c734f7699c0.mp4
 
 
 ### SCS G + SCS D
@@ -31,6 +35,7 @@ Parameters in G: 2,046,987
 
 Parameters in D:   196,143
 
+https://user-images.githubusercontent.com/17656709/155038275-43d9758b-5d0c-4041-bb2e-d89ea5a31ed3.mp4
 
 
 ## TODO
