@@ -49,3 +49,5 @@ https://user-images.githubusercontent.com/17656709/155038275-43d9758b-5d0c-4041-
 - [ ] Better SCS Generator without ReLU
 
 - [ ] Try more datasets
+
+- [ ] Update videos to use universally supported codec
