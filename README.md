@@ -17,7 +17,7 @@ Parameters in G: 3,574,656
 
 Parameters in D: 2,763,520
 
-https://user-images.githubusercontent.com/17656709/155038245-4837e3c2-34f6-486e-92f7-e3f791f8c48e.mp4
+https://user-images.githubusercontent.com/17656709/155170358-7ad5d423-1d06-4113-bc87-237706d96f05.mp4
 
 
 ### DC G + SCS D
@@ -26,7 +26,7 @@ Parameters in G: 3,574,656
 
 Parameters in D:   196,143
 
-https://user-images.githubusercontent.com/17656709/155038258-e44f55ed-43e4-4519-899c-6c734f7699c0.mp4
+https://user-images.githubusercontent.com/17656709/155170384-74fce1d3-5b30-444c-92be-f57a97b713a1.mp4
 
 
 ### SCS G + SCS D
@@ -35,7 +35,7 @@ Parameters in G: 2,046,987
 
 Parameters in D:   196,143
 
-https://user-images.githubusercontent.com/17656709/155038275-43d9758b-5d0c-4041-bb2e-d89ea5a31ed3.mp4
+https://user-images.githubusercontent.com/17656709/155170411-1cf19c5d-ed45-48e1-b9cf-d09761354f07.mp4
 
 
 ## TODO
@@ -50,4 +50,4 @@ https://user-images.githubusercontent.com/17656709/155038275-43d9758b-5d0c-4041-
 
 - [ ] Try more datasets
 
-- [ ] Update videos to use universally supported codec
+- [x] Update videos to use universally supported codec
