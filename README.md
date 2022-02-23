@@ -7,7 +7,7 @@ The concept of SCS is inspired by [Brandon Rohrer](https://github.com/brohrer) (
 
 The implementation of SCS in this repo is taken from [Lucas Nestler](https://gist.github.com/ClashLuke) ([Gist](https://gist.github.com/ClashLuke/8f6521deef64789e76334f1b72a70d80)).
 
-## Tests
+## Tests (outdated)
 
 Using the MNIST dataset
 
@@ -40,14 +40,20 @@ https://user-images.githubusercontent.com/17656709/155170411-1cf19c5d-ed45-48e1-
 
 ## TODO
 
-- [ ] Test new SCS implementation by Lucas Nestler without last part of SCS
+- [x] Test new SCS implementation by Lucas Nestler
+
+- [ ] Make p optional in SCS
 
 - [ ] Compare FID scores
 
 - [ ] Compare training time
 
-- [ ] Better SCS Generator without ReLU
+- [x] Better SCS Generator without ReLU and normal conv
+
+- [ ] Make SCS Generator better (find replacement for LeakyReLU?)
 
 - [ ] Try more datasets
 
 - [x] Update videos to use universally supported codec
+
+- [ ] Update all videos to show new architectures
