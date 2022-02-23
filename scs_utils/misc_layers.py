@@ -14,6 +14,10 @@ class AbsPool(nn.Module):
 
 MaxAbsPool2d = partial(AbsPool, nn.MaxPool2d)
 
+class Abs(nn.Module):
+    def forward(self, x):
+        return x.abs()
+
 class AbsSplit(nn.Module):
     def forward(self, x):
         return torch.concat([F.relu(x), F.relu(-x)], dim=1)

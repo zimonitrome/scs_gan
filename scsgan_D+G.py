@@ -1,3 +1,4 @@
+# Copied from: https://github.com/pytorch/examples/tree/master/dcgan
 from __future__ import print_function
 import argparse
 import os
@@ -11,12 +12,13 @@ import torch.utils.data
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
-from scs_utils.misc_layers import AbsSplitAlt
-from scs_utils.CosSim2d import CosSim2d
-from scs_utils.CosSimTranspose2d import CosSimTranspose2d
+from scs_utils.CosSimConv2d import CosSimConv2d
+from scs_utils.CosSimConvTranspose2d import CosSimConvTranspose2d
+from scs_utils.misc_layers import Abs
 # Needed to download datasets on sites without ssl/https
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -27,7 +29,7 @@ if __name__ == "__main__":
     parser.add_argument('--imageSize', type=int, default=64, help='the height / width of the input image to network')
     parser.add_argument('--nz', type=int, default=100, help='size of the latent z vector')
     parser.add_argument('--ngf', type=int, default=64)
-    parser.add_argument('--ndf', type=int, default=16)
+    parser.add_argument('--ndf', type=int, default=64)
     parser.add_argument('--niter', type=int, default=25, help='number of epochs to train for')
     parser.add_argument('--lr', type=float, default=0.0002, help='learning rate, default=0.0002')
     parser.add_argument('--beta1', type=float, default=0.5, help='beta1 for adam. default=0.5')
@@ -132,32 +134,22 @@ if __name__ == "__main__":
             self.ngpu = ngpu
             self.main = nn.Sequential(
                 # input is Z, going into a convolution
-                CosSimTranspose2d(nz    , ngf*8, kernel_size=3, stride=2, padding=0, bias=True),
-                nn.ReLU(),
-
-                # state size. (ngf*8) x 3 x 3
-                CosSimTranspose2d(ngf*8, ngf*4, kernel_size=3, stride=2, padding=0, bias=True),
-                nn.ReLU(),
-
-                # state size. (ngf*4) x 7 x 7
-                CosSimTranspose2d(ngf*4 , ngf*2, kernel_size=3, stride=2, padding=0, bias=True),
-                nn.ReLU(),
-
-                # state size. (ngf*2) x 15 x 15
-                CosSimTranspose2d(ngf*2 , ngf  , kernel_size=3, stride=2, padding=0, bias=True),
-                nn.ReLU(),
-
-                # state size. (ngf) x 31 x 31
-                CosSimTranspose2d(ngf   , ngf  , kernel_size=3, stride=2, padding=0, bias=True),
-                nn.ReLU(),
-
-                # state size. (ngf) x 63 x 63
-                nn.Conv2d(ngf, nc, 4, stride=1, padding=2),
+                CosSimConvTranspose2d(     nz, ngf * 8, 4, 1, 0, bias=True),
+                nn.LeakyReLU(),
+                # state size. (ngf*8) x 4 x 4
+                CosSimConvTranspose2d(ngf * 8, ngf * 4, 4, 2, 1, bias=True),
+                nn.LeakyReLU(),
+                # state size. (ngf*4) x 8 x 8
+                CosSimConvTranspose2d(ngf * 4, ngf * 2, 4, 2, 1, bias=True),
+                nn.LeakyReLU(),
+                # state size. (ngf*2) x 16 x 16
+                CosSimConvTranspose2d(ngf * 2,     ngf, 4, 2, 1, bias=True),
+                nn.LeakyReLU(),
+                # state size. (ngf) x 32 x 32
+                nn.ConvTranspose2d(    ngf,      nc, 4, 2, 1),
                 nn.Tanh()
-
                 # state size. (nc) x 64 x 64
             )
-
 
         def forward(self, input):
             if input.is_cuda and self.ngpu > 1:
@@ -181,31 +173,23 @@ if __name__ == "__main__":
             self.ngpu = ngpu
             self.main = nn.Sequential(
                 # input is (nc) x 64 x 64
-                AbsSplitAlt(),
-                CosSim2d(2*nc, ndf, 3, 2, 1, bias=False),
-                AbsSplitAlt(),
-
-                # state size. (ndf*2) x 32 x 32
-                CosSim2d(ndf * 2, ndf * 2, 3, 2, 1, bias=False),
-                AbsSplitAlt(),
-
-                # state size. (ndf*4) x 16 x 16
-                CosSim2d(ndf * 4, ndf * 4, 3, 2, 1, bias=False),
-                AbsSplitAlt(),
-
-                # state size. (ndf*8) x 8 x 8
-                CosSim2d(ndf * 8, ndf * 8, 3, 2, 1, bias=False),
-                AbsSplitAlt(),
-
-                # state size. (ndf*16) x 4 x 4
-                CosSim2d(ndf * 16, 1, 3, 1, 0, bias=False),
-
+                CosSimConv2d(nc, ndf, 4, 2, 1, bias=False),
+                Abs(),
+                # state size. (ndf) x 32 x 32
+                CosSimConv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
+                Abs(),
+                # state size. (ndf*2) x 16 x 16
+                CosSimConv2d(ndf * 2, ndf * 4, 4, 2, 1, bias=False),
+                Abs(),
+                # state size. (ndf*4) x 8 x 8
+                CosSimConv2d(ndf * 4, ndf * 8, 4, 2, 1, bias=False),
+                Abs(),
+                # state size. (ndf*8) x 4 x 4
+                CosSimConv2d(ndf * 8, 1, 2, 2, 0, bias=False),
                 # state size. 1 x 2 x 2
                 nn.Flatten(),
-
                 # state size. 4
                 nn.Linear(4,1),
-                
                 # state size. 1
                 nn.Sigmoid()
             )
@@ -216,12 +200,11 @@ if __name__ == "__main__":
             else:
                 output = self.main(input)
 
-            # return output #.view(-1, 1).squeeze(1)
-            return output.view(input.shape[0])
+            return output.view(-1, 1).squeeze(1)
 
 
     netD = Discriminator(ngpu).to(device)
-    # netD.apply(weights_init)
+    netD.apply(weights_init)
     if opt.netD != '':
         netD.load_state_dict(torch.load(opt.netD))
     # print(netD)
@@ -251,7 +234,6 @@ if __name__ == "__main__":
             batch_size = real_cpu.size(0)
             label = torch.full((batch_size,), real_label,
                             dtype=real_cpu.dtype, device=device)
-
             output = netD(real_cpu)
             errD_real = criterion(output, label)
             errD_real.backward()
