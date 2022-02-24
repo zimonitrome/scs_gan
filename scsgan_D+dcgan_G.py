@@ -3,6 +3,7 @@ from __future__ import print_function
 import argparse
 import os
 import random
+import time
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -14,6 +15,10 @@ import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from scs_utils.CosSimConv2d import CosSimConv2d
 from scs_utils.misc_layers import Abs
+
+from FID.InceptionNet import model as inception_model
+from FID.FID import calculate_fretchet
+
 # Needed to download datasets on sites without ssl/https
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -176,19 +181,19 @@ if __name__ == "__main__":
             self.ngpu = ngpu
             self.main = nn.Sequential(
                 # input is (nc) x 64 x 64
-                CosSimConv2d(nc, ndf, 4, 2, 1, bias=False),
+                CosSimConv2d(nc, ndf, 4, 2, 1, bias=True, p=False),
                 Abs(),
                 # state size. (ndf) x 32 x 32
-                CosSimConv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
+                CosSimConv2d(ndf, ndf * 2, 4, 2, 1, bias=True, p=False),
                 Abs(),
                 # state size. (ndf*2) x 16 x 16
-                CosSimConv2d(ndf * 2, ndf * 4, 4, 2, 1, bias=False),
+                CosSimConv2d(ndf * 2, ndf * 4, 4, 2, 1, bias=True, p=False),
                 Abs(),
                 # state size. (ndf*4) x 8 x 8
-                CosSimConv2d(ndf * 4, ndf * 8, 4, 2, 1, bias=False),
+                CosSimConv2d(ndf * 4, ndf * 8, 4, 2, 1, bias=True, p=False),
                 Abs(),
                 # state size. (ndf*8) x 4 x 4
-                CosSimConv2d(ndf * 8, 1, 2, 2, 0, bias=False),
+                CosSimConv2d(ndf * 8, 1, 2, 2, 0, bias=True, p=False),
                 # state size. 1 x 2 x 2
                 nn.Flatten(),
                 # state size. 4
@@ -271,13 +276,23 @@ if __name__ == "__main__":
                 vutils.save_image(real_cpu,
                         '%s/real_samples.png' % opt.outf,
                         normalize=True)
-                fake = netG(fixed_noise)
+                with torch.no_grad():
+                    fake = netG(fixed_noise)
                 vutils.save_image(fake.detach(),
                         '%s/fake_samples_epoch_%03d_%03d.png' % (opt.outf, epoch, i),
                         normalize=True)
 
             if opt.dry_run:
                 break
+        # Save FID
+        with torch.no_grad():
+            if real_cpu.shape[1] == 1:
+                real_cpu = real_cpu.expand(-1, 3, -1, -1)
+                fake = fake.expand(-1, 3, -1, -1)
+            fid = calculate_fretchet(real_cpu, fake, inception_model)
+        with open(f"{opt.outf}/fid.txt", "a+") as file:
+            file.write(f"{epoch}, {i}, {round(time.time())}, {fid}\n")
+
         # do checkpointing
         torch.save(netG.state_dict(), '%s/netG_epoch_%d.pth' % (opt.outf, epoch))
         torch.save(netD.state_dict(), '%s/netD_epoch_%d.pth' % (opt.outf, epoch))
