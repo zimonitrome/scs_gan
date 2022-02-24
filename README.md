@@ -23,7 +23,7 @@ The lines are actually the average of 3 runs with the seeds 1, 2, 3.
 
 ### Videos from the runs
 
-### DGCAN
+### Vanilla DGCAN
 
 ```
 Parameters in G: 3,574,656
