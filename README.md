@@ -15,53 +15,43 @@ Using the MNIST dataset
 
 Currently SCS does not seem to be much better than deep conv GANs... More tinkering needed.
 
-This is FID calculated on batches of 64 vs 64 images during training of 25 epochs.
+This is FID calculated on batches of 64 vs 64 images during training of 25 epochs and ndf (controlling feature maps in D) set to 16.
+
+The lines are actually the average of 3 runs with the seeds 1, 2, 3.
 
 ![](media/FID_results.png)
 
-### Original DGCAN (outdated)
+### Videos from the runs
 
+### DGCAN
+
+```
 Parameters in G: 3,574,656
+Parameters in D:   174,784
+```
 
-Parameters in D: 2,763,520
-
-https://user-images.githubusercontent.com/17656709/155170358-7ad5d423-1d06-4113-bc87-237706d96f05.mp4
-
-
-### DC G + SCS D (outdated)
-
-Parameters in G: 3,574,656
-
-Parameters in D:   196,143
-
-https://user-images.githubusercontent.com/17656709/155170384-74fce1d3-5b30-444c-92be-f57a97b713a1.mp4
+https://user-images.githubusercontent.com/17656709/155624893-cbc3c8d4-21d4-4976-928a-1572859076d7.mp4
 
 
-### SCS G + SCS D (outdated)
+### SCS GAN
 
-Parameters in G: 2,046,987
+```
+Parameters in G: 3,572,741
+Parameters in D:   173,051
+```
 
-Parameters in D:   196,143
-
-https://user-images.githubusercontent.com/17656709/155170411-1cf19c5d-ed45-48e1-b9cf-d09761354f07.mp4
+https://user-images.githubusercontent.com/17656709/155624917-ded582e3-489c-4249-8e72-f136b5f2c222.mp4
 
 
 ## TODO
 
-- [x] Test new SCS implementation by Lucas Nestler
-
-- [ ] Make p optional in SCS
-
-- [X] Compare FID scores
-
-- [X] Compare training time
-
-- [x] Better SCS Generator without ReLU and normal conv
-
 - [ ] Make SCS Generator better (find replacement for LeakyReLU?)
-
 - [ ] Try more datasets
-
+- [ ] Try smaller models without P
+- [x] Test new SCS implementation by Lucas Nestler
+- [X] Make p optional in SCS
+- [X] Compare FID scores
+- [X] Compare training time
+- [x] Better SCS Generator without ReLU and normal conv
 - [x] Update videos to use universally supported codec
-
-- [ ] Update all videos to show new architectures
+- [X] Update all videos to show new architectures
