@@ -6,7 +6,7 @@ from torch.nn import functional as F
 
 class CosSimConvTranspose2d(nn.ConvTranspose2d):
     def __init__(self, in_channels: int, out_channels: int, kernel_size, stride=1, padding=None, output_padding=0, 
-                groups: int = 1, bias: bool = False, dilation=1, q_scale: float = 10, p_scale: float = 100):
+                groups: int = 1, bias: bool = False, dilation=1, p = True, q_scale: float = 10, p_scale: float = 100):
         if padding is None:
             if int(torch.__version__.split('.')[1]) >= 10:
                 padding = "same"
@@ -15,7 +15,6 @@ class CosSimConvTranspose2d(nn.ConvTranspose2d):
         if isinstance(kernel_size, int):
             kernel_size = (kernel_size, kernel_size)
 
-        bias = True  # Disable bias for "true" SCS, add it for better performance
         assert dilation == 1, "Dilation has to be 1 to use AvgPool2d as L2-Norm backend."
         assert groups == in_channels or groups == 1, "Either depthwise or full convolution. Grouped not supported"
         super(CosSimConvTranspose2d, self).__init__(in_channels, out_channels, kernel_size, stride, padding, output_padding, groups,
@@ -23,8 +22,11 @@ class CosSimConvTranspose2d(nn.ConvTranspose2d):
         self.q_scale = q_scale  # q scale is missing at normalization of input. minor difference, but necessary
         self.q = torch.nn.Parameter(torch.full((1,), q_scale ** 0.5))
         # For "true" SCS:
-        self.p_scale = p_scale
-        self.p = torch.nn.Parameter(torch.full((out_channels,), 2 ** 0.5 + p_scale))
+        if p:
+            self.p_scale = p_scale
+            self.p = torch.nn.Parameter(torch.full((out_channels,), 2 ** 0.5 + p_scale))
+        else:
+            self.p = None
 
     def forward(self, inp: torch.Tensor) -> torch.Tensor:
         out = inp.square()
@@ -35,6 +37,9 @@ class CosSimConvTranspose2d(nn.ConvTranspose2d):
         q = self.q.square() / self.q_scale
         weight = self.weight / (self.weight.square().sum(dim=(1, 2, 3), keepdim=True).sqrt() + q)
         out = F.conv_transpose2d(inp, weight, self.bias, self.stride, self.padding, self.output_padding, self.groups, self.dilation) / norm.sqrt()
+
+        if self.p is None:
+            return out
 
         # For "true" SCS (it's ~200x slower):
         sign = torch.sign(out)
