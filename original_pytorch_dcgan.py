@@ -3,6 +3,7 @@ from __future__ import print_function
 import argparse
 import os
 import random
+import time
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -12,6 +13,13 @@ import torch.utils.data
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
+
+from FID.InceptionNet import model as inception_model
+from FID.FID import calculate_fretchet
+
+# Needed to download datasets on sites without ssl/https
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -263,13 +271,23 @@ if __name__ == "__main__":
                 vutils.save_image(real_cpu,
                         '%s/real_samples.png' % opt.outf,
                         normalize=True)
-                fake = netG(fixed_noise)
+                with torch.no_grad():
+                    fake = netG(fixed_noise)
                 vutils.save_image(fake.detach(),
                         '%s/fake_samples_epoch_%03d_%03d.png' % (opt.outf, epoch, i),
                         normalize=True)
 
             if opt.dry_run:
                 break
+        # Save FID
+        with torch.no_grad():
+            if real_cpu.shape[1] == 1:
+                real_cpu = real_cpu.expand(-1, 3, -1, -1)
+                fake = fake.expand(-1, 3, -1, -1)
+            fid = calculate_fretchet(real_cpu, fake, inception_model)
+        with open(f"{opt.outf}/fid.txt", "a+") as file:
+            file.write(f"{epoch}, {i}, {round(time.time())}, {fid}\n")
+
         # do checkpointing
         torch.save(netG.state_dict(), '%s/netG_epoch_%d.pth' % (opt.outf, epoch))
         torch.save(netD.state_dict(), '%s/netD_epoch_%d.pth' % (opt.outf, epoch))
